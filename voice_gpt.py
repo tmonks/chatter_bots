@@ -4,6 +4,7 @@ import speech_recognition as sr
 import time
 from dotenv import load_dotenv
 import os
+from chatbot import Chatbot
 
 # Set your OpenAI API key
 load_dotenv()
@@ -44,16 +45,33 @@ def speak_text(text):
     engine.runAndWait()
 
 
+marv = Chatbot("Marv", "Directive1", "en-westindies", "male", 120, 100)
+jarvis = Chatbot("Marv", "Directive1", "en-scottish", "male", 120, 120)
+
+
+def maybe_wake_bot(transcription):
+    print('I heard: ' + transcription)
+    transcription = transcription.lower()
+    if transcription == 'hey jarvis':
+        return jarvis
+    elif transcription == 'hey marv':
+        return marv
+    else:
+        return None
+
+
 def main():
+
     while True:
         # Wait for user to say "Jarvis"
-        print('Say "Jarvis" to start recording')
+        print('Say "Hey Jarvis" to start recording')
         with sr.Microphone() as source:
             recognizer = sr.Recognizer()
             audio = recognizer.listen(source)
             try:
                 transcription = recognizer.recognize_google(audio)
-                if transcription.lower() == 'jarvis':
+                bot = maybe_wake_bot(transcription)
+                if bot:
                     # record audio
                     filename = 'input.wav'
                     print('Say your question...')
@@ -71,10 +89,11 @@ def main():
                     if text:
                         print('I heard: ' + text)
                         # generate response
-                        response = generate_response(text)
-                        print('GPT-3 response: ' + response)
+                        # response = generate_response(text)
+                        # print('GPT-3 response: ' + response)
                         # # speak response
-                        speak_text(response)
+                        # speak_text(response)
+                        bot.speak(text)
             except Exception as e:
                 print(f"An error occurred: {e}")
 
