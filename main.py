@@ -1,14 +1,7 @@
-import openai
 import pyttsx3
 import speech_recognition as sr
-import time
-from dotenv import load_dotenv
 import os
 from chatbot import Chatbot
-
-# Set your OpenAI API key
-load_dotenv()
-openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # Initialize the text-to-speech engine
 # make sure to install espeak: `sudo apt install espeak`
@@ -26,27 +19,16 @@ def transcribe_audio_to_text(filename):
         print('Skipping unknown error')
 
 
-def generate_response(prompt):
-    response = openai.Completion.create(
-        engine='text-davinci-003',
-        prompt=prompt,
-        max_tokens=4000,
-        n=1,
-        stop=None,
-        temperature=0.5
-    )
-
-    return response['choices'][0]['text']
-
-
 def speak_text(text):
     """Speaks the given text."""
     engine.say(text)
     engine.runAndWait()
 
 
-marv = Chatbot("Marv", "You are a helpful assistant", "en-westindies", 120)
-jarvis = Chatbot("Jarvis", "You are a helpful assistant", "en-scottish", 180)
+marv = Chatbot("Marv", "You are a helpful assistant",
+               0.5, "en-westindies", 120)
+jarvis = Chatbot("Jarvis", "You are a helpful assistant",
+                 0.5, "en-scottish", 180)
 
 
 def maybe_wake_bot(transcription):
@@ -99,4 +81,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    marv.get_and_speak_response('Who is Tony Stark?')
+    print(marv.messages)
