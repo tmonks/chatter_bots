@@ -45,8 +45,8 @@ def speak_text(text):
     engine.runAndWait()
 
 
-marv = Chatbot("Marv", "Directive1", "en-westindies", "male", 120, 100)
-jarvis = Chatbot("Marv", "Directive1", "en-scottish", "male", 120, 120)
+marv = Chatbot("Marv", "You are a helpful assistant", "en-westindies", 120)
+jarvis = Chatbot("Jarvis", "You are a helpful assistant", "en-scottish", 180)
 
 
 def maybe_wake_bot(transcription):
@@ -93,7 +93,7 @@ def main():
                         # print('GPT-3 response: ' + response)
                         # # speak response
                         # speak_text(response)
-                        bot.speak(text)
+                        bot.get_and_speak_response(text)
             except Exception as e:
                 print(f"An error occurred: {e}")
 
