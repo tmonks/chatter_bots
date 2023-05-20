@@ -1,7 +1,8 @@
-import pyttsx3
 from dotenv import load_dotenv
 import openai
 import os
+
+from espeakng import ESpeakNG
 
 # Set your OpenAI API key
 load_dotenv()
@@ -9,17 +10,18 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
 class Chatbot:
-    def __init__(self, name, system_prompt, temperature, voice, speed):
+    def __init__(self, name, system_prompt, voice='en', temperature=0.5, speed=150, pitch=50):
         self.name = name
         self.voice = voice
         self.speed = speed
+        self.pitch = pitch
         self.temperature = temperature
         self.messages = [{'role': 'system', 'content': system_prompt}]
 
-        self.engine = pyttsx3.init()
-        self.engine.setProperty('voice', self.voice)
-        self.engine.setProperty('rate', self.speed)
-        self.engine.setProperty('volume', 1.0)
+        self.engine = ESpeakNG()
+        self.engine.voice = self.voice
+        self.engine.speed = self.speed
+        self.engine.pitch = self.pitch
 
     def generate_response(self, request_text):
         user_message = {'role': 'user', 'content': request_text}
@@ -42,9 +44,7 @@ class Chatbot:
 
     def get_and_speak_response(self, request_text):
         response = self.generate_response(request_text)
-        self.speak(f'{self.name} says: {response}')
+        self.speak(response)
 
     def speak(self, text):
-        # Use pyttsx3 library to speak the provided text
-        self.engine.say(text)
-        self.engine.runAndWait()
+        self.engine.say(text, sync=True)
