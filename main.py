@@ -1,6 +1,7 @@
 import pyttsx3
 import speech_recognition as sr
 from chatbot import Chatbot
+import sounddevice
 
 # Initialize the text-to-speech engine
 # make sure to install espeak: `sudo apt install espeak`
