@@ -32,8 +32,8 @@ class Chatbot:
                 temperature=self.temperature
             )
 
-            print(response)
             response_content = response['choices'][0].message['content']
+            print(response_content)
             self.messages.append(user_message)
             self.messages.append(
                 {'role': 'assistant', 'content': response_content})
