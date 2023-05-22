@@ -10,8 +10,9 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
 class Chatbot:
-    def __init__(self, name, system_prompt, voice='en', temperature=0.5, speed=150, pitch=50):
+    def __init__(self, name, wake_words, system_prompt, voice='en', temperature=0.5, speed=150, pitch=50):
         self.name = name
+        self.wake_words = wake_words
         self.voice = voice
         self.speed = speed
         self.pitch = pitch
