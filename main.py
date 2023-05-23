@@ -40,17 +40,21 @@ bots = [marv, jarvis, thor, glados, jessica]
 
 
 def maybe_wake_bot(transcription):
+    """Returns a tuple of the bot that was woken and the transcription with the wake phrase removed."""
     transcription = transcription.lower()
 
     # loop through bots and see if the transcription start with 'hey [bot name]'
     for bot in bots:
         for wake_word in bot.wake_words:
-            if transcription.startswith('hey ' + wake_word):
-                return bot
+            wake_phrase = 'hey ' + wake_word
+            if transcription.startswith(wake_phrase):
+                # remove the wake phrase from the transcription
+                transcription = transcription.replace(wake_phrase, '').strip()
+                return (bot, transcription)
 
     # if no bot was found, return None
     print('I did not hear a wake word')
-    return None
+    return (None, transcription)
 
 
 def main():
@@ -74,8 +78,9 @@ def main():
             if text:
                 print('I heard: ' + text)
                 # try to wake bot
-                bot = maybe_wake_bot(text)
+                bot, text = maybe_wake_bot(text)
                 if bot:
+                    print(f"Asking {bot.name}: {text}")
                     bot.get_and_speak_response(text)
         except Exception as e:
             print(f"An error occurred: {e}")
