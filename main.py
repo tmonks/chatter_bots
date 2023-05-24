@@ -66,6 +66,12 @@ def maybe_wake_bot(transcription):
 
 def main():
 
+    recognizer = sr.Recognizer()
+    # adjust for ambient noise
+    print('Adjusting for ambient noise...')
+    with sr.Microphone() as source:
+        recognizer.adjust_for_ambient_noise(source, duration=1)
+
     while True:
         # prompt user to press Enter to record or q to quit
         ans = input("\nPress Enter to record or q to quit...\n")
@@ -73,12 +79,13 @@ def main():
             break
         try:
             filename = 'input.wav'
-            print('Ask your question, staring with "Hey [bot\'s name]"...')
+            print('Ask your question, starting with "Hey [bot\'s name]"...')
             with sr.Microphone() as source:
-                recognizer = sr.Recognizer()
+                # set the maximum pause threshold to 1 second
                 source.pause_threshold = 1
+                # wait for up to 1 second to start, then 5 seconds to finish
                 audio = recognizer.listen(
-                    source, phrase_time_limit=None, timeout=None)
+                    source, phrase_time_limit=5, timeout=2)
                 # write audio to file
                 with open(filename, 'wb') as f:
                     f.write(audio.get_wav_data())
