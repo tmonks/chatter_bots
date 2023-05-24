@@ -67,7 +67,10 @@ def maybe_wake_bot(transcription):
 def main():
 
     while True:
-        input('\nPress Enter to record\n')
+        # prompt user to press Enter to record or q to quit
+        ans = input("\nPress Enter to record or q to quit...\n")
+        if ans == 'q':
+            break
         try:
             filename = 'input.wav'
             print('Ask your question, staring with "Hey [bot\'s name]"...')
