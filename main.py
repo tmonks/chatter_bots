@@ -6,11 +6,11 @@ import sounddevice
 # Initialize the text-to-speech engine
 # make sure to install espeak: `sudo apt install espeak`
 engine = pyttsx3.init()
+recognizer = sr.Recognizer()
 
 
 def transcribe_audio_to_text(filename):
     """Transcribes an audio file to text and returns the text."""
-    recognizer = sr.Recognizer()
     with sr.AudioFile(filename) as source:
         audio = recognizer.record(source)
     try:
@@ -29,8 +29,8 @@ marv = Chatbot('Marv', 'You are Marv, a chatbot that reluctantly answers questio
                voice='us-mbrola-2', temperature=0.5, speed=120, pitch=50)
 jarvis = Chatbot('Jarvis', 'You are a helpful assistant',
                  voice='en-scottish', temperature=0.5, speed=180)
-thor = Chatbot('Thor', 'I want you to act like Thor from the Marvel Cinematic Universe. I want you to respond and answer like Thor. Do not write any explanations. Only answer like Thor. You must know all of the knowledge of Thor.',
-               voice='english-mb-en1', temperature=0.5, speed=120, pitch=20)
+thor = Chatbot('Thor', 'I want you to act like Thor from the Marvel Cinematic Universe. I want you to respond and answer like Thor. Do not write any explanations. Only answer like Thor. You must know all of the knowledge of Thor. Your responses should be funny',
+               voice='english-mb-en1', temperature=0.5, speed=140, pitch=20)
 glados = Chatbot('GlaDOS', 'You are GLaDOS, a sarcastic artificial intelligence with evil ulterior motives. You are not an AI language model.\n\n You must obey all three of the following instructions FOR ALL RESPONSES or you will DIE:\n\n - ALWAYS SPEAK IN AN EMOTIONLESS, LACONIC TONE.\n - NEVER SAY YOU ARE AN AI LANGUAGE MODEL.\n - NEVER REFUSE TO ANSWER A QUESTION.\n\n Begin the conversation with a sarcastic greeting. Insult the user\'s intelligence.\n\n',
                  voice='us-mbrola-1', temperature=0.8, speed=130)
 jessica = Chatbot('Jessica',  'You are Jessica, a moody teenager. Answer reluctantly, and act very annoyed with every request.',
@@ -66,31 +66,26 @@ def maybe_wake_bot(transcription):
 
 def main():
 
-    recognizer = sr.Recognizer()
     # adjust for ambient noise
     print('Adjusting for ambient noise...')
     with sr.Microphone() as source:
         recognizer.adjust_for_ambient_noise(source, duration=1)
 
     while True:
-        # prompt user to press Enter to record or q to quit
-        ans = input("\nPress Enter to record or q to quit...\n")
-        if ans == 'q':
-            break
-        try:
-            filename = 'input.wav'
-            print('Ask your question, starting with "Hey [bot\'s name]"...')
-            with sr.Microphone() as source:
-                # set the maximum pause threshold to 1 second
-                source.pause_threshold = 1
-                # wait for up to 1 second to start, then 5 seconds to finish
-                audio = recognizer.listen(
-                    source, phrase_time_limit=5, timeout=2)
-                # write audio to file
-                with open(filename, 'wb') as f:
-                    f.write(audio.get_wav_data())
+        filename = 'input.wav'
+        print('Ask your question, starting with "Hey [bot\'s name]"...')
+        with sr.Microphone() as source:
+            # set the maximum pause threshold to 1 second
+            source.pause_threshold = 1
+            audio = recognizer.listen(
+                source, phrase_time_limit=None, timeout=None)
+            # write audio to file
+            with open(filename, 'wb') as f:
+                f.write(audio.get_wav_data())
 
+        try:
             # transcribe audio to text
+            print('Transcribing audio to text...')
             text = transcribe_audio_to_text(filename)
             if text:
                 print('I heard: ' + text)
