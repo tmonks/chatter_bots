@@ -98,5 +98,37 @@ def main():
             print(f"An error occurred: {e}")
 
 
+def transcribe_audio(audio):
+    try:
+        print('Transcribing audio to text...')
+        transcription = recognizer.recognize_google(audio)
+        print('I heard: ' + transcription)
+        return transcription
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+def wake_test():
+    while True:
+        # Wait for user to say "Jarvis"
+        print('Say "Hey Jarvis" to start recording')
+        with sr.Microphone() as source:
+            recognizer = sr.Recognizer()
+            source.pause_threshold = 1
+            audio = recognizer.listen(source)
+            transcription = transcribe_audio(audio)
+            if transcription.lower() == 'hey jarvis':
+                print('Jarvis has been woken!')
+                # play a beep to let the user know Jarvis has been woken
+                print('\a')
+                print('Ask your question...')
+                audio = recognizer.listen(
+                    source, phrase_time_limit=8, timeout=2)
+                request = transcribe_audio(audio)
+                if request:
+                    print('Asking Jarvis')
+                    jarvis.get_and_speak_response(request)
+
+
 if __name__ == '__main__':
     main()
