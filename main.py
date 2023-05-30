@@ -9,14 +9,12 @@ engine = pyttsx3.init()
 recognizer = sr.Recognizer()
 
 
-def transcribe_audio_to_text(filename):
-    """Transcribes an audio file to text and returns the text."""
-    with sr.AudioFile(filename) as source:
-        audio = recognizer.record(source)
+def transcribe_audio(audio):
     try:
-        return recognizer.recognize_google(audio)
-    except:
-        print('Skipping unknown error')
+        transcription = recognizer.recognize_google(audio)
+        return transcription
+    except Exception as e:
+        return None
 
 
 def speak_text(text):
@@ -55,13 +53,11 @@ def maybe_wake_bot(transcription):
         for wake_word in wake_words:
             wake_phrase = 'hey ' + wake_word
             if transcription.startswith(wake_phrase):
-                # remove the wake phrase from the transcription
-                transcription = transcription.replace(wake_phrase, '').strip()
-                return (bot, transcription)
+                return bot
 
     # if no bot was found, return None
     print('I did not hear a wake word')
-    return (None, transcription)
+    return None
 
 
 def main():
@@ -71,63 +67,30 @@ def main():
     with sr.Microphone() as source:
         recognizer.adjust_for_ambient_noise(source, duration=1)
 
+    print('Say "Hey [bot name]" to start recording')
+
     while True:
-        filename = 'input.wav'
-        print('Ask your question, starting with "Hey [bot\'s name]"...')
         with sr.Microphone() as source:
-            # set the maximum pause threshold to 1 second
+            # listen for the wake phrase
             source.pause_threshold = 1
             audio = recognizer.listen(
                 source, phrase_time_limit=None, timeout=None)
-            # write audio to file
-            with open(filename, 'wb') as f:
-                f.write(audio.get_wav_data())
 
-        try:
-            # transcribe audio to text
-            print('Transcribing audio to text...')
-            text = transcribe_audio_to_text(filename)
-            if text:
-                print('I heard: ' + text)
+            # try to transcribe audio to text
+            wake_phrase = transcribe_audio(audio)
+
+            if wake_phrase:
                 # try to wake bot
-                bot, text = maybe_wake_bot(text)
+                bot = maybe_wake_bot(wake_phrase)
                 if bot:
-                    print(f"Asking {bot.name}: {text}")
-                    bot.get_and_speak_response(text)
-        except Exception as e:
-            print(f"An error occurred: {e}")
-
-
-def transcribe_audio(audio):
-    try:
-        print('Transcribing audio to text...')
-        transcription = recognizer.recognize_google(audio)
-        print('I heard: ' + transcription)
-        return transcription
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-
-def wake_test():
-    while True:
-        # Wait for user to say "Jarvis"
-        print('Say "Hey Jarvis" to start recording')
-        with sr.Microphone() as source:
-            recognizer = sr.Recognizer()
-            source.pause_threshold = 1
-            audio = recognizer.listen(source)
-            transcription = transcribe_audio(audio)
-            if transcription.lower() == 'hey jarvis':
-                print('Jarvis has been woken!')
-                # play a beep to let the user know Jarvis has been woken
-                print('\a')
-                print('Ask your question...')
-                audio = recognizer.listen(
-                    source, phrase_time_limit=8, timeout=2)
-                request = transcribe_audio(audio)
-                if request:
-                    print('Asking Jarvis')
-                    jarvis.get_and_speak_response(request)
+                    print('\a')
+                    print(f"What's your question for {bot.name}?")
+                    audio = recognizer.listen(
+                        source, phrase_time_limit=8, timeout=None)
+                    question = transcribe_audio(audio)
+                    if question:
+                        print(f"Asking {bot.name} '{question}'")
+                        bot.get_and_speak_response(question)
 
 
 if __name__ == '__main__':
