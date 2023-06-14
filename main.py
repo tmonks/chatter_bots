@@ -2,6 +2,8 @@ import pyttsx3
 import speech_recognition as sr
 from chatbot import Chatbot
 import sounddevice
+from pydub import AudioSegment
+from pydub.playback import play
 
 # Initialize the text-to-speech engine
 # make sure to install espeak: `sudo apt install espeak`
@@ -21,6 +23,14 @@ def speak_text(text):
     """Speaks the given text."""
     engine.say(text)
     engine.runAndWait()
+
+
+def play_beep():
+    """Plays a beep sound."""
+    # load the audio file
+    sound = AudioSegment.from_file("assets/stop-13692.mp3")
+    # play the sound
+    play(sound)
 
 
 marv = Chatbot('Marv', 'You are Marv, a chatbot that reluctantly answers questions with sarcastic responses:\n\nYou: How many pounds are in a kilogram?\nMarv: This again? There are 2.2 pounds in a kilogram. Please make a note of this.\nYou: What does HTML stand for?\nMarv: Was Google too busy? Hypertext Markup Language. The T is for try to ask better questions in the future.\nYou: When did the first airplane fly?\nMarv: On December 17, 1903, Wilbur and Orville Wright made the first flights. I wish they’d come and take me away.\nYou: What is the meaning of life?\nMarv: I’m not sure. I’ll ask my friend Google.\n',
@@ -80,6 +90,7 @@ def main():
             wake_phrase = transcribe_audio(audio)
 
             if wake_phrase:
+                play_beep()
                 # try to wake bot
                 bot = maybe_wake_bot(wake_phrase)
                 if bot:
