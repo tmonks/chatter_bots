@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from typing import Dict, List
 import openai
 import os
-import time
+from speaker import Speaker
 
 from espeakng import ESpeakNG
 
@@ -14,18 +14,11 @@ MODEL_NAME = 'gpt-3.5-turbo'
 
 
 class Chatbot:
-    def __init__(self, name, system_prompt, voice='en', temperature=0.5, speed=150, pitch=50):
+    def __init__(self, name, system_prompt, voice='kal_diphone', temperature=0.5):
         self.name = name
-        self.voice = voice
-        self.speed = speed
-        self.pitch = pitch
+        self.speaker = Speaker(voice)
         self.temperature = temperature
         self.messages = [{'role': 'system', 'content': system_prompt}]
-
-        self.engine = ESpeakNG()
-        self.engine.voice = self.voice
-        self.engine.speed = self.speed
-        self.engine.pitch = self.pitch
 
     def get_and_speak_response(self, request_text):
         """Get response from OpenAI and speak it"""
@@ -69,7 +62,7 @@ class Chatbot:
         )
 
     def speak(self, text):
-        self.engine.say(text, sync=True)
+        self.speaker.speak(text)
 
     def _create_message(self, role: str, content: str) -> Dict[str, str]:
         """Creates a message dictionary with a role and content"""
