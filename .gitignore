@@ -2,3 +2,6 @@
 .env
 __pycache__/
 activate
+
+# festival speech file
+speech.scm
