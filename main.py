@@ -4,6 +4,7 @@ from chatbot import Chatbot
 import sounddevice
 from pydub import AudioSegment
 from pydub.playback import play
+import re
 
 # Initialize the text-to-speech engine
 # make sure to install espeak: `sudo apt install espeak`
@@ -12,6 +13,8 @@ recognizer = sr.Recognizer()
 
 
 def transcribe_audio(audio):
+    print('Transcribing...')
+
     try:
         transcription = recognizer.recognize_google(audio)
         return transcription
@@ -33,17 +36,6 @@ def play_beep():
     # play the sound
     play(sound)
 
-
-# Available voices...
-#  cmu_us_slt_arctic_hts
-#  us2_mbrola
-#  kal_diphone
-#  don_diphone
-#  rab_diphone
-#  en1_mbrola
-#  ked_diphone
-#  us1_mbrola
-#  us3_mbrola
 
 marv = Chatbot('Marv', 'You are Marv, a chatbot that reluctantly answers questions with sarcastic responses:\n\nYou: How many pounds are in a kilogram?\nMarv: This again? There are 2.2 pounds in a kilogram. Please make a note of this.\nYou: What does HTML stand for?\nMarv: Was Google too busy? Hypertext Markup Language. The T is for try to ask better questions in the future.\nYou: When did the first airplane fly?\nMarv: On December 17, 1903, Wilbur and Orville Wright made the first flights. I wish they’d come and take me away.\nYou: What is the meaning of life?\nMarv: I’m not sure. I’ll ask my friend Google.\n',
                voice='cmu_us_aew_cg', temperature=0.5)
@@ -80,14 +72,15 @@ bots = [
 def maybe_wake_bot(original_transcription):
     """Returns a tuple of the bot that was woken and the transcription with the wake phrase removed."""
     transcription = original_transcription.lower()
+    # if first word is 'hey', remove it
+    transcription = re.sub(r'^hey ', '', transcription)
 
     # loop through bots and see if the transcription start with 'hey [bot name]'
     for bot, wake_words in bots:
         for wake_word in wake_words:
-            wake_phrase = 'hey ' + wake_word
-            if transcription.startswith(wake_phrase):
-                # remove the wake phrase from the transcription
-                transcription = transcription[len(wake_phrase)+1:]
+            if transcription.startswith(wake_word):
+                # remove the wake phrase from the transcription with regex
+                transcription = re.sub(rf'^{wake_word}\s?', '', transcription)
                 return transcription, bot
 
     # if no bot was found, return None
@@ -100,10 +93,12 @@ def main():
     # adjust for ambient noise
     print('Adjusting for ambient noise...')
     with sr.Microphone() as source:
-        recognizer.adjust_for_ambient_noise(source, duration=1)
+        # recognizer.adjust_for_ambient_noise(source, duration=1)
+        # print(f'Ambient noise energy threshold: {recognizer.energy_threshold}')
+        recognizer.energy_threshold = 200
 
-    print('Ask your question, starting with "Hey [bot\'s name]"...')
     while True:
+        print('\nListening for wake word...')
         with sr.Microphone() as source:
             # listen for the wake phrase
             source.pause_threshold = 1
@@ -114,12 +109,19 @@ def main():
 
             if question_text:
                 print(f'I heard: {question_text}')
-                play_beep()
                 # try to wake bot
                 question_text, bot = maybe_wake_bot(question_text)
                 if bot:
+                    play_beep()
+
+                    # if question_text is empty, listen for a question
+                    if not question_text:
+                        print('Listening for question...')
+                        audio = recognizer.listen(source, phrase_time_limit=10)
+                        question_text = transcribe_audio(audio)
+
                     print(f"Asking {bot.name} '{question_text}'")
-                    bot.get_and_speak_response(question_text)
+                bot.get_and_speak_response(question_text)
 
 
 if __name__ == '__main__':
