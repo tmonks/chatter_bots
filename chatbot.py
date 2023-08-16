@@ -1,10 +1,11 @@
 from dotenv import load_dotenv
 from typing import Dict, List
+from speaker import Speaker
+from espeakng import ESpeakNG
 import openai
 import os
-from speaker import Speaker
+import re
 
-from espeakng import ESpeakNG
 
 # Set your OpenAI API key
 load_dotenv()
@@ -24,7 +25,7 @@ class Chatbot:
         """Get response from OpenAI and speak it"""
         try:
             response = self._get_openai_response(request_text)
-            response_content = self._handle_stream_response(response)
+            response_content = self._speak_stream_response(response)
             self._append_message('user', request_text)
             self._append_message('assistant', response_content)
             return response_content
@@ -34,7 +35,7 @@ class Chatbot:
             self.speak(response_content)
             return response_content
 
-    def _handle_stream_response(self, response):
+    def _speak_stream_response(self, response):
         """Speak the streamed response from OpenAI in 'sentences'"""
         all_words = []
         words_in_sentence = []
@@ -62,6 +63,8 @@ class Chatbot:
         )
 
     def speak(self, text):
+        # remove any single or double quotes from the text
+        text = re.sub(r'["\']', '', text)
         self.speaker.speak(text)
 
     def _create_message(self, role: str, content: str) -> Dict[str, str]:
